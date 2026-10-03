@@ -37,14 +37,14 @@ Permitir que um criador de conteúdo leve um roteiro até um vídeo editado fina
 
 - **RN-01:** um roteiro deve conter pelo menos 1 cena para ser aceito.
 - **RN-02:** o roteiro é dividido em cenas na ordem em que aparece no texto.
-- **RN-03:** o sistema processa cada cena uma única vez por execução. Uma cena já gerada não é recriada ao reexecutar o projeto.
+- **RN-03:** uma execução é cada envio do projeto pelo criador, seja a criação ou uma reexecução (RN-06). Em cada execução, o sistema processa cada cena no máximo uma vez. Uma cena já gerada não é recriada.
 - **RN-04:** o sistema inicia a edição final somente quando todas as cenas do projeto estiverem geradas.
-- **RN-05:** se uma cena falhar, o projeto fica com estado "falhou" e a cena fica com estado "falhou" e uma mensagem de erro registrada no projeto. O sistema mantém as demais cenas geradas.
+- **RN-05:** se uma cena falhar, o projeto fica com estado "falhou" e a cena fica com estado "falhou" e uma mensagem de erro registrada no projeto. O sistema mantém o estado e o arquivo das demais cenas geradas.
 - **RN-06:** o criador pode reexecutar um projeto que falhou. O sistema processa novamente apenas as cenas com estado "falhou" ou "pendente".
 - **RN-07:** o projeto concluído expõe um único arquivo de vídeo final para download.
-- **RN-08:** se a geração de uma cena não terminar em 10 minutos, a cena é considerada falhou.
+- **RN-08:** se a geração de uma cena não terminar em 10 minutos, contados a partir do início da geração da cena (o tempo de espera antes desse início não conta), a cena é considerada falhou.
 - **RN-09:** o sistema não repete automaticamente uma cena que falhou. Apenas o criador dispara novas tentativas, pelo fluxo da RN-06.
-- **RN-11:** a edição final deve terminar em até 30 minutos. Se passar desse tempo, o projeto fica com estado "falhou" e a mensagem "A edição final excedeu o limite de 30 minutos.", e as cenas geradas são mantidas.
+- **RN-11:** a edição final deve terminar em até 30 minutos, contados a partir do início do processamento da edição final (o tempo de espera antes desse início não conta). Se passar desse tempo, o projeto fica com estado "falhou" e a mensagem "A edição final excedeu o limite de 30 minutos.", e as cenas geradas são mantidas.
 - **RN-10:** um roteiro com mais de 10 cenas, ou com alguma cena com mais de 2.000 caracteres, é recusado com a mensagem "O roteiro excede o limite de 10 cenas de até 2.000 caracteres cada." e nenhum projeto é criado.
 
 ## 6. Critérios de aceite
@@ -57,7 +57,7 @@ Permitir que um criador de conteúdo leve um roteiro até um vídeo editado fina
 **CA-02: projeto concluído entrega um vídeo**
 - **Dado** que todas as cenas de um projeto foram geradas,
 - **Quando** a edição final termina,
-- **Então** o projeto muda para "concluído" em até 30 minutos depois do início da edição final (RN-11) e expõe um arquivo de vídeo para download.
+- **Então** o projeto muda para "concluído" em até 30 minutos depois de a edição final começar a ser processada (RN-11). O tempo de espera antes desse início não conta. O projeto expõe um arquivo de vídeo para download.
 
 **CA-03: falha em uma cena não apaga o trabalho feito**
 - **Dado** que um projeto de 3 cenas teve as cenas 1 e 2 geradas e a cena 3 falhou,
@@ -68,6 +68,16 @@ Permitir que um criador de conteúdo leve um roteiro até um vídeo editado fina
 - **Dado** um projeto de 3 cenas em que as cenas 1 e 2 foram geradas e a cena 3 falhou,
 - **Quando** o criador solicita a reexecução,
 - **Então** a cena 3 passa a mostrar o estado "gerada" na tela do projeto, e as cenas 1 e 2 continuam com o mesmo arquivo que tinham antes da reexecução.
+
+**CA-06: roteiro com mais de 10 cenas é recusado**
+- **Dado** que o criador envia um roteiro com 11 cenas,
+- **Quando** o envio é confirmado,
+- **Então** o sistema mostra a mensagem "O roteiro excede o limite de 10 cenas de até 2.000 caracteres cada." e nenhum projeto é criado.
+
+**CA-07: cena que passa de 10 minutos falha**
+- **Dado** que a geração de uma cena de um projeto começou há 10 minutos e ainda não terminou (o tempo de espera antes do início não conta, RN-08),
+- **Quando** o limite de 10 minutos é atingido,
+- **Então** a cena muda para "falhou", exibe a mensagem "A geração da cena excedeu 10 minutos." e o projeto muda para "falhou".
 
 **CA-05: roteiro sem cena é recusado**
 - **Dado** que o criador envia um roteiro vazio ou formado só por espaços,
@@ -97,7 +107,7 @@ RN-05 é a regra mais importante desta feature: ela define se o criador perde o 
 
 Cada ambiguidade encontrada e o que a equipe decidiu. Preencher antes da revisão cruzada.
 
-_Validação das decisões D-01 a D-17 pela equipe: validado em 03/10/2026._
+_Validação das decisões D-01 a D-17 pela equipe: validado em 03/10/2026. As decisões D-18 a D-23, vindas da revisão cruzada, foram validadas pela equipe em 03/10/2026. CA-06 e CA-07 aguardam o teste dos três dedos._
 
 | # | Ambiguidade | Decisão | Motivo |
 |---|---|---|---|
@@ -117,6 +127,14 @@ _Validação das decisões D-01 a D-17 pela equipe: validado em 03/10/2026._
 | D-14 | Varredura de vagueza (rápido, fácil, intuitivo, adequado) | Nenhuma ocorrência encontrada no corpo da spec. As únicas citações estão nesta tabela, como exemplo de decisão tomada | Sem ação necessária |
 | D-15 | Varredura de fuga (etc., se necessário, se possível, se houver) | Único caso ("se houver", RN-09) resolvido por D-06. Demais citações estão nesta tabela | Sem cláusula aberta restante no corpo da spec |
 | D-16 | Teste dos três dedos nos critérios CA-01 a CA-05 (binário, observável, livre de implementação) | Primeira rodada (03/10/2026): Maycon (produto), Danilo (técnico) e Gabriel (QA). Reprovados: CA-02 (Danilo), CA-03 (Maycon, Gabriel), CA-04 (Maycon). Reteste (03/10/2026): CA-02 por Danilo, CA-03 e CA-04 por Maycon e Gabriel, todos aprovados. Ajustes feitos a partir do reteste: início da contagem dos 30 minutos explicitado no CA-02; CA-04 agora descreve o próprio cenário, sem depender do CA-03. Nenhum critério cita classe, tabela, framework ou biblioteca | Maycon e Gabriel aprovaram o CA-02 na versão anterior, sem o limite de 30 minutos. Pedir que confirmem a versão atual |
+| D-18 | Ambiguidade de "mantém as demais cenas geradas" (RN-05) | Mantém o estado e o arquivo das demais cenas | Apontado na revisão cruzada (P2) |
+| D-19 | Ambiguidade de "execução" (RN-03) | Execução é cada envio do projeto pelo criador, criação ou reexecução | Apontado na revisão cruzada (P2) |
+| D-20 | Ambiguidade de contagem de 30 minutos (CA-02, RN-11) | A contagem começa quando a edição final começa a ser processada. Espera na fila não conta | Apontado na revisão cruzada (P2) |
+| D-21 | Falta de critério para roteiro com mais de 10 cenas (RN-10) | Criado CA-06 | Apontado na revisão cruzada (P3) |
+| D-22 | Lacuna sobre como o criador acompanha o andamento | Mantido como lacuna na pergunta de reconstrução | Apontado na revisão cruzada (P1). Definir o acompanhamento exige decisão da equipe |
+| D-23 | Falta de critério para cena que passa de 10 minutos (RN-08) | Criado CA-07, com mensagem "A geração da cena excedeu 10 minutos." | Apontado na revisão cruzada (P3). A mensagem é nova e precisa de validação da equipe |
+| D-24 | Início da contagem de 10 minutos (RN-08, CA-07) | A contagem começa quando a geração da cena começa, como em D-20. A espera antes disso não conta | Reprovado por Danilo e Gilberto no teste de CA-07: sem o início definido, dois testadores podem chegar a resultados diferentes. Reteste em 03/10/2026 por Danilo e Gilberto, com o texto novo: passa, em linha com o resultado de Maycon |
+| D-25 | Casos de borda de CA-06 (10 cenas aceitas, 11 recusadas) | Sem mudança no critério. Os casos ficam como anotação para os testes | Sugestão do Gabriel. CA-06 cobre o caso de 11 cenas. O caso de 10 cenas aceitas não tem critério próprio e fica como anotação para o teste |
 | D-17 | Limite de tempo da edição final (CA-02, RN-11) | 30 minutos. Aplicado na spec como RN-11 e no CA-02. Aguarda confirmação da equipe | Reprovado por Danilo no teste dos três dedos: sem prazo, a espera pode ser indefinida. Valor proposto pelo autor, não definido em nenhum documento da disciplina |
 
 **Pergunta de reconstrução:** se o código fosse apagado agora, esta spec seria suficiente para reconstruí-lo?

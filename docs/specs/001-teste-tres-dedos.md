@@ -21,6 +21,8 @@ Se qualquer resposta for "não" ou "depende", o critério não passa e precisa s
 | CA-03: falha em uma cena não apaga o trabalho feito | ☐ | ☐ | ☐ | ☐ passa ☐ não passa | | |
 | CA-04: reexecução processa apenas o que falhou | ☐ | ☐ | ☐ | ☐ passa ☐ não passa | | |
 | CA-05: roteiro sem cena é recusado | ☐ | ☐ | ☐ | ☐ passa ☐ não passa | | |
+| CA-06: roteiro com mais de 10 cenas é recusado | ☐ | ☐ | ☐ | ☐ passa ☐ não passa | | |
+| CA-07: cena que passa de 10 minutos falha | ☐ | ☐ | ☐ | ☐ passa ☐ não passa | | |
 
 ## Pontos de atenção
 
